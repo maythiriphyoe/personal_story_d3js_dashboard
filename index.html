@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Story Dashboard</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            margin-bottom: 24px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        .kpi-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+        }
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+        }
+        .w-12 { grid-column: span 12; }
+        .w-6 { grid-column: span 6; }
+        @media (max-width: 768px) { .w-6 { grid-column: span 12; } }
+        
+        .card h2 {
+            margin: 0 0 16px 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        .axis text { font-size: 10px; fill: #64748b; }
+        .axis path, .axis line { stroke: #e2e8f0; }
+        .line-m { fill: none; stroke: #2563eb; stroke-width: 2.5; }
+        .line-s { fill: none; stroke: #ea580c; stroke-width: 2.5; }
+        
+        .legend {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .legend-i { display: flex; align-items: center; gap: 4px; }
+        .legend-b { width: 10px; height: 10px; border-radius: 2px; }
+        
+        .filter-select {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            pointer-events: none;
+            opacity: 0;
+            line-height: 1.4;
+            z-index: 999;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .interactive-dot {
+            cursor: pointer;
+            transition: r 0.1s ease;
+        }
+        .interactive-dot:hover { r: 7px; }
+        .interactive-bar {
+            cursor: pointer;
+            transition: opacity 0.1s ease;
+        }
+        .interactive-bar:hover { opacity: 0.85; }
+        
+        .matrix-text {
+            font-size: 10px;
+            font-weight: 700;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Maeve's Personal Well-being Analytics</h1>
+        </header>
+
+        <div class="kpi-row">
+            <div class="kpi-card"><div id="k-m" class="kpi-value">-</div><div class="kpi-label">Avg mood score</div></div>
+            <div class="kpi-card"><div id="k-s" class="kpi-value">-</div><div class="kpi-label">Avg stress level</div></div>
+            <div class="kpi-card"><div id="k-sl" class="kpi-value">-</div><div class="kpi-label">Avg sleep hours</div></div>
+            <div class="kpi-card"><div id="k-sc" class="kpi-value">-</div><div class="kpi-label">Avg screen time</div></div>
+        </div>
+
+        <div class="grid">
+            <div class="card w-12">
+                <h2>Mood vs Stress Trend</h2>
+                <div class="legend">
+                    <div class="legend-i"><div class="legend-b" style="background: #2563eb;"></div>Mood</div>
+                    <div class="legend-i"><div class="legend-b" style="background: #ea580c;"></div>Stress</div>
+                </div>
+                <div id="c-line"></div>
+            </div>
+
+            <div class="card w-6">
+                <h2>Sleep hours vs mood score</h2>
+                <div id="c-sleep"></div>
+            </div>
+
+            <div class="card w-6">
+                <h2>Stress levels: weekdays vs weekends</h2>
+                <div id="c-week"></div>
+            </div>
+
+            <div class="card w-12">
+                <h2>Average mood score by daily highlight category</h2>
+                <div id="c-high"></div>
+            </div>
+
+            <div class="card w-12">
+                <h2>Productivity grid (Bubble size = learning hours | Color = stress level)</h2>
+                <div id="c-matrix"></div>
+            </div>
+
+            <div class="card w-6">
+                <h2>Mood score vs social energy reserve</h2>
+                <div id="c-social"></div>
+            </div>
+
+            <div class="card w-6">
+                <h2>Wellness habits baseline impact</h2>
+                <select id="habit-filter" class="filter-select">
+                    <option value="Yes">Journaling: Yes</option>
+                    <option value="No">Journaling: No</option>
+                </select>
+                <div id="c-habit"></div>
+            </div>
+
+            <div class="card w-12">
+                <h2>Variable correlation matrix</h2>
+                <div id="c-corr"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tt" class="tooltip"></div>
+
+    <script>
+        const data = [
+          { "Date": "2026-05-01", "Day": "Fri", "Day Type": "Weekday", "Sleep Hours": 6, "Mood Score": 5, "Stress Level": 4, "Productivity Score": 4, "Learning Hours": 1, "Screen Time": 5.75, "Social Energy": 5, "Journaling": "No", "Daily Highlight": "Kdrama", "Motivation Level": 5, "Self-Care": "Yes", "Daily Highlight Category": "Entertainment" },
+          { "Date": "2026-05-02", "Day": "Sat", "Day Type": "Weekend", "Sleep Hours": 4, "Mood Score": 4, "Stress Level": 4, "Productivity Score": 6, "Learning Hours": 0, "Screen Time": 4.0, "Social Energy": 6, "Journaling": "Yes", "Daily Highlight": "Kdrama", "Motivation Level": 4, "Self-Care": "Yes", "Daily Highlight Category": "Entertainment" },
+          { "Date": "2026-05-03", "Day": "Sun", "Day Type": "Weekend", "Sleep Hours": 6, "Mood Score": 5, "Stress Level": 4, "Productivity Score": 6, "Learning Hours": 2, "Screen Time": 6.0, "Social Energy": 5, "Journaling": "No", "Daily Highlight": "Holiday", "Motivation Level": 5, "Self-Care": "Yes", "Daily Highlight Category": "Off-Day" },
+          { "Date": "2026-05-04", "Day": "Mon", "Day Type": "Weekday", "Sleep Hours": 4, "Mood Score": 5, "Stress Level": 5, "Productivity Score": 6, "Learning Hours": 5, "Screen Time": 6.0, "Social Energy": 4, "Journaling": "Yes", "Daily Highlight": "Nothing", "Motivation Level": 5, "Self-Care": "No", "Daily Highlight Category": "Neutral" },
+          { "Date": "2026-05-05", "Day": "Tue", "Day Type": "Weekday", "Sleep Hours": 5, "Mood Score": 4, "Stress Level": 5, "Productivity Score": 7, "Learning Hours": 3, "Screen Time": 5.0, "Social Energy": 5, "Journaling": "Yes", "Daily Highlight": "Actor I like", "Motivation Level": 5, "Self-Care": "Yes", "Daily Highlight Category": "Inspiration" },
+          { "Date": "2026-05-06", "Day": "Wed", "Day Type": "Weekday", "Sleep Hours": 5, "Mood Score": 5, "Stress Level": 5, "Productivity Score": 6, "Learning Hours": 5, "Screen Time": 9.5, "Social Energy": 4, "Journaling": "No", "Daily Highlight": "Nothing", "Motivation Level": 5, "Self-Care": "No", "Daily Highlight Category": "Neutral" },
+          { "Date": "2026-05-07", "Day": "Thu", "Day Type": "Weekday", "Sleep Hours": 5, "Mood Score": 6, "Stress Level": 7, "Productivity Score": 6, "Learning Hours": 3, "Screen Time": 5.0, "Social Energy": 5, "Journaling": "Yes", "Daily Highlight": "Nothing", "Motivation Level": 5, "Self-Care": "Yes", "Daily Highlight Category": "Neutral" },
+          { "Date": "2026-05-08", "Day": "Fri", "Day Type": "Weekday", "Sleep Hours": 5, "Mood Score": 5, "Stress Level": 4, "Productivity Score": 6, "Learning Hours": 0, "Screen Time": 9.5, "Social Energy": 5, "Journaling": "No", "Daily Highlight": "Actor I like", "Motivation Level": 5, "Self-Care": "Yes", "Daily Highlight Category": "Inspiration" },
+          { "Date": "2026-05-09", "Day": "Sat", "Day Type": "Weekend", "Sleep Hours": 5, "Mood Score": 7, "Stress Level": 5, "Productivity Score": 6, "Learning Hours": 1, "Screen Time": 4.0, "Social Energy": 6, "Journaling": "No", "Daily Highlight": "Kdrama", "Motivation Level": 5, "Self-Care": "Yes", "Daily Highlight Category": "Entertainment" },
+          { "Date": "2026-05-10", "Day": "Sun", "Day Type": "Weekend", "Sleep Hours": 5, "Mood Score": 7, "Stress Level": 4, "Productivity Score": 3, "Learning Hours": 1, "Screen Time": 5.0, "Social Energy": 7, "Journaling": "No", "Daily Highlight": "Kdrama", "Motivation Level": 5, "Self-Care": "Yes", "Daily Highlight Category": "Entertainment" },
+          { "Date": "2026-05-11", "Day": "Mon", "Day Type": "Weekday", "Sleep Hours": 5, "Mood Score": 6, "Stress Level": 7, "Productivity Score": 6, "Learning Hours": 5, "Screen Time": 4.5, "Social Energy": 4, "Journaling": "Yes", "Daily Highlight": "Actor I like", "Motivation Level": 4, "Self-Care": "No", "Daily Highlight Category": "Inspiration" },
+          { "Date": "2026-05-12", "Day": "Tue", "Day Type": "Weekday", "Sleep Hours": 5, "Mood Score": 5, "Stress Level": 7, "Productivity Score": 5, "Learning Hours": 3, "Screen Time": 11.5, "Social Energy": 5, "Journaling": "Yes", "Daily Highlight": "Actor I like", "Motivation Level": 4, "Self-Care": "Yes", "Daily Highlight Category": "Inspiration" },
+          { "Date": "2026-05-13", "Day": "Wed", "Day Type": "Weekday", "Sleep Hours": 6, "Mood Score": 8, "Stress Level": 5, "Productivity Score": 5, "Learning Hours": 5, "Screen Time": 6.25, "Social Energy": 4, "Journaling": "Yes", "Daily Highlight": "Actor I like", "Motivation Level": 4, "Self-Care": "Yes", "Daily Highlight Category": "Inspiration" },
+          { "Date": "2026-05-14", "Day": "Thu", "Day Type": "Weekday", "Sleep Hours": 4, "Mood Score": 2, "Stress Level": 7, "Productivity Score": 7, "Learning Hours": 3, "Screen Time": 6.5, "Social Energy": 4, "Journaling": "Yes", "Daily Highlight": "Cafe", "Motivation Level": 3, "Self-Care": "No", "Daily Highlight Category": "Relaxation" },
+          { "Date": "2026-05-15", "Day": "Fri", "Day Type": "Weekday", "Sleep Hours": 8, "Mood Score": 8, "Stress Level": 4, "Productivity Score": 5, "Learning Hours": 2, "Screen Time": 7.0, "Social Energy": 5, "Journaling": "Yes", "Daily Highlight": "Cooking", "Motivation Level": 6, "Self-Care": "Yes", "Daily Highlight Category": "Hobby" },
+          { "Date": "2026-05-16", "Day": "Sat", "Day Type": "Weekend", "Sleep Hours": 6, "Mood Score": 2, "Stress Level": 8, "Productivity Score": 5, "Learning Hours": 1, "Screen Time": 6.0, "Social Energy": 5, "Journaling": "Yes", "Daily Highlight": "Kdrama", "Motivation Level": 3, "Self-Care": "No", "Daily Highlight Category": "Entertainment" },
+          { "Date": "2026-05-17", "Day": "Sun", "Day Type": "Weekend", "Sleep Hours": 5, "Mood Score": 3, "Stress Level": 5, "Productivity Score": 0, "Learning Hours": 1, "Screen Time": 5.0, "Social Energy": 4, "Journaling": "No", "Daily Highlight": "Kdrama", "Motivation Level": 3, "Self-Care": "No", "Daily Highlight Category": "Entertainment" },
+          { "Date": "2026-05-18", "Day": "Mon", "Day Type": "Weekday", "Sleep Hours": 6, "Mood Score": 3, "Stress Level": 9, "Productivity Score": 7, "Learning Hours": 8, "Screen Time": 4.0, "Social Energy": 4, "Journaling": "No", "Daily Highlight": "Feeling Achieved", "Motivation Level": 3, "Self-Care": "No", "Daily Highlight Category": "Achievement" },
+          { "Date": "2026-05-19", "Day": "Tue", "Day Type": "Weekday", "Sleep Hours": 5, "Mood Score": 7, "Stress Level": 6, "Productivity Score": 7, "Learning Hours": 5, "Screen Time": 5.5, "Social Energy": 5, "Journaling": "Yes", "Daily Highlight": "Feeling Achieved", "Motivation Level": 7, "Self-Care": "Yes", "Daily Highlight Category": "Achievement" },
+          { "Date": "2026-05-20", "Day": "Wed", "Day Type": "Weekday", "Sleep Hours": 6, "Mood Score": 6, "Stress Level": 7, "Productivity Score": 7, "Learning Hours": 6, "Screen Time": 6.0, "Social Energy": 5, "Journaling": "Yes", "Daily Highlight": "Feeling Achieved", "Motivation Level": 7, "Self-Care": "Yes", "Daily Highlight Category": "Achievement" }
+        ];
+
+        const parseTime = d3.timeParse("%Y-%m-%d");
+        data.forEach(d => {
+            d.pDate = parseTime(d.Date);
+            d.m = +d["Mood Score"];
+            d.s = +d["Stress Level"];
+            d.sl = +d["Sleep Hours"];
+            d.prod = +d["Productivity Score"];
+            d.learn = +d["Learning Hours"];
+            d.scr = +d["Screen Time"];
+            d.soc = +d["Social Energy"];
+        });
+
+        const tt = d3.select("#tt");
+        const showTT = (e, txt) => tt.style("opacity", 1).html(txt).style("left", (e.pageX + 12) + "px").style("top", (e.pageY - 15) + "px");
+        const hideTT = () => tt.style("opacity", 0);
+
+        d3.select("#k-m").text(d3.mean(data, d => d.m).toFixed(1));
+        d3.select("#k-s").text(d3.mean(data, d => d.s).toFixed(1));
+        d3.select("#k-sl").text(d3.mean(data, d => d.sl).toFixed(1));
+        d3.select("#k-sc").text(d3.mean(data, d => d.scr).toFixed(1));
+
+        // 1. Timeline
+        (() => {
+            const m = {top: 15, right: 15, bottom: 25, left: 24},
+                  w = document.getElementById('c-line').clientWidth - m.left - m.right, h = 200 - m.top - m.bottom;
+            const svg = d3.select("#c-line").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+            const x = d3.scaleTime().domain(d3.extent(data, d => d.pDate)).range([0, w]);
+            const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%m/%d")));
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+            svg.append("path").datum(data).attr("class", "line-m").attr("d", d3.line().x(d => x(d.pDate)).y(d => y(d.m)).curve(d3.curveMonotoneX));
+            svg.append("path").datum(data).attr("class", "line-s").attr("d", d3.line().x(d => x(d.pDate)).y(d => y(d.s)).curve(d3.curveMonotoneX));
+
+            data.forEach(d => {
+                svg.append("circle").attr("cx", x(d.pDate)).attr("cy", y(d.m)).attr("r", 4.5).attr("fill", "#2563eb").attr("class", "interactive-dot")
+                   .on("mouseover", e => showTT(e, `Date: ${d.Date}<br>Mood score: <b>${d.m}</b>`)).on("mouseout", hideTT);
+                svg.append("circle").attr("cx", x(d.pDate)).attr("cy", y(d.s)).attr("r", 4.5).attr("fill", "#ea580c").attr("class", "interactive-dot")
+                   .on("mouseover", e => showTT(e, `Date: ${d.Date}<br>Stress level: <b>${d.s}</b>`)).on("mouseout", hideTT);
+            });
+        })();
+
+        // 2. Sleep vs Mood
+        (() => {
+            const m = {top: 10, right: 10, bottom: 30, left: 24},
+                  w = document.getElementById('c-sleep').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+            const svg = d3.select("#c-sleep").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+            const x = d3.scaleLinear().domain([3, 9]).range([0, w]);
+            const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x));
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+            svg.selectAll("circle").data(data).enter().append("circle")
+                .attr("cx", d => x(d.sl)).attr("cy", d => y(d.m)).attr("r", 5).attr("fill", "#0d9488").attr("class", "interactive-dot")
+                .on("mouseover", (e,d) => showTT(e, `Sleep hours: ${d.sl}<br>Mood score: ${d.m}`)).on("mouseout", hideTT);
+        })();
+
+        // 3. Weekday vs Weekend
+        (() => {
+            const rolled = d3.rollup(data, v => d3.mean(v, d => d.s), d => d["Day Type"]);
+            const bData = Array.from(rolled, ([k, v]) => ({ k, v }));
+            const m = {top: 10, right: 10, bottom: 30, left: 24},
+                  w = document.getElementById('c-week').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+            const svg = d3.select("#c-week").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+            const x = d3.scaleBand().domain(["Weekday", "Weekend"]).range([0, w]).padding(0.4);
+            const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x));
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+            svg.selectAll("rect").data(bData).enter().append("rect")
+                .attr("x", d => x(d.k)).attr("y", d => y(d.v)).attr("width", x.bandwidth()).attr("height", d => h - y(d.v))
+                .attr("fill", d => d.k === "Weekday" ? "#dc2626" : "#2563eb").attr("class", "interactive-bar")
+                .on("mouseover", (e,d) => showTT(e, `Avg stress level: ${d.v.toFixed(1)}`)).on("mouseout", hideTT);
+        })();
+
+        // 4. Highlight Category
+        (() => {
+            const rolled = d3.rollup(data, v => d3.mean(v, d => d.m), d => d["Daily Highlight Category"]);
+            const bData = Array.from(rolled, ([k, v]) => ({ k, v })).sort((a,b) => b.v - a.v);
+            const m = {top: 10, right: 20, bottom: 20, left: 85},
+                  w = document.getElementById('c-high').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+            const svg = d3.select("#c-high").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+            const x = d3.scaleLinear().domain([0, 10]).range([0, w]);
+            const y = d3.scaleBand().domain(bData.map(d => d.k)).range([0, h]).padding(0.2);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(5));
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y));
+
+            svg.selectAll("rect").data(bData).enter().append("rect")
+                .attr("x", 0).attr("y", d => y(d.k)).attr("width", d => x(d.v)).attr("height", y.bandwidth()).attr("fill", "#6d28d9").attr("class", "interactive-bar")
+                .on("mouseover", (e,d) => showTT(e, `Avg Mood Score: ${d.v.toFixed(1)}`)).on("mouseout", hideTT);
+        })();
+
+        // 5. Productivity Matrix
+        (() => {
+            const m = {top: 15, right: 15, bottom: 30, left: 30},
+                  w = document.getElementById('c-matrix').clientWidth - m.left - m.right, h = 220 - m.top - m.bottom;
+            const svg = d3.select("#c-matrix").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+            const x = d3.scaleLinear().domain([-0.5, 8]).range([0, w]);
+            const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+            const r = d3.scaleLinear().domain([0, 8]).range([3, 14]);
+            const color = d3.scaleSequential(d3.interpolateYlOrRd).domain([2, 9]);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x));
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+            svg.selectAll("circle").data(data).enter().append("circle")
+                .attr("cx", d => x(d.prod)).attr("cy", d => y(d.m)).attr("r", d => r(d.learn))
+                .attr("fill", d => color(d.s)).attr("stroke", "#475569").attr("stroke-width", 1).attr("class", "interactive-dot")
+                .on("mouseover", (e,d) => showTT(e, `Productivity score: ${d.prod}<br>Mood score: ${d.m}<br>Learning hours: ${d.learn}<br>Stress level: ${d.s}`)).on("mouseout", hideTT);
+        })();
+
+        // 6. Refined Mood Score vs Social Energy Reserve (Scatter Plot Fixed)
+        (() => {
+            const m = {top: 15, right: 15, bottom: 30, left: 24},
+                  w = document.getElementById('c-social').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+            const svg = d3.select("#c-social").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+            
+            const x = d3.scaleLinear().domain([3, 8]).range([0, w]);
+            const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(5));
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+            svg.selectAll(".socdot").data(data).enter().append("circle").attr("class", "interactive-dot")
+                .attr("cx", d => x(d.soc)).attr("cy", d => y(d.m)).attr("r", 6).attr("fill", "#7c3aed").attr("opacity", 0.8)
+                .on("mouseover", (e, d) => showTT(e, `Social Energy Reserve: <b>${d.soc}</b><br>Mood Score: <b>${d.m}</b>`))
+                .on("mouseout", hideTT);
+        })();
+
+        // 7. Refined Wellness Habits (Journaling Isolated + Interactive Dropdown Filter)
+        const journalMetrics = {
+            "Yes": [
+                { metric: "Mood score", val: 5.25, color: "#2563eb" },
+                { metric: "Stress level", val: 6.00, color: "#ea580c" }
+            ],
+            "No": [
+                { metric: "Mood score", val: 5.00, color: "#3b82f6" },
+                { metric: "Stress level", val: 5.00, color: "#f97316" }
+            ]
+        };
+
+        const renderJournalChart = (status) => {
+            const container = d3.select("#c-habit");
+            container.selectAll("*").remove();
+
+            const hData = journalMetrics[status];
+            const m = {top: 20, right: 40, bottom: 30, left: 40},
+                  w = document.getElementById('c-habit').clientWidth - m.left - m.right, h = 150 - m.top - m.bottom;
+            
+            const svg = container.append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+            
+            const x = d3.scaleBand().domain(hData.map(d => d.metric)).range([0, w]).padding(0.4);
+            const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x));
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+            svg.selectAll("rect").data(hData).enter().append("rect").attr("class", "interactive-bar")
+                .attr("x", d => x(d.metric)).attr("y", d => y(d.val)).attr("width", x.bandwidth()).attr("height", d => h - y(d.val)).attr("fill", d => d.color)
+                .on("mouseover", (e, d) => showTT(e, `Journaling: <b>${status}</b><br>${d.metric}: <b>${d.val.toFixed(2)}</b>`))
+                .on("mouseout", hideTT);
+        };
+
+        renderJournalChart("Yes");
+        document.getElementById("habit-filter").addEventListener("change", (e) => renderJournalChart(e.target.value));
+
+        // 8. Variable Correlation Matrix Heatmap (High Contrast + Labels Inside Cells)
+        (() => {
+            const labels = ["Mood", "Stress", "Sleep", "Screen time", "Social energy", "Productivity", "Learning"];
+            const matrix = [
+              {v1:"Mood", v2:"Mood", val:1.0}, {v1:"Mood", v2:"Stress", val:-0.40}, {v1:"Mood", v2:"Sleep", val:0.35}, {v1:"Mood", v2:"Screen time", val:0.02}, {v1:"Mood", v2:"Social energy", val:0.31}, {v1:"Mood", v2:"Productivity", val:0.03}, {v1:"Mood", v2:"Learning", val:0.09},
+              {v1:"Stress", v2:"Mood", val:-0.40}, {v1:"Stress", v2:"Stress", val:1.0}, {v1:"Stress", v2:"Sleep", val:-0.02}, {v1:"Stress", v2:"Screen time", val:-0.07}, {v1:"Stress", v2:"Social energy", val:-0.39}, {v1:"Stress", v2:"Productivity", val:0.33}, {v1:"Stress", v2:"Learning", val:0.59},
+              {v1:"Sleep", v2:"Mood", val:0.35}, {v1:"Sleep", v2:"Stress", val:-0.02}, {v1:"Sleep", v2:"Sleep", val:1.0}, {v1:"Sleep", v2:"Screen time", val:0.05}, {v1:"Sleep", v2:"Social energy", val:-0.01}, {v1:"Sleep", v2:"Productivity", val:-0.10}, {v1:"Sleep", v2:"Learning", val:0.08},
+              {v1:"Screen time", v2:"Mood", val:0.02}, {v1:"Screen time", v2:"Stress", val:-0.07}, {v1:"Screen time", v2:"Sleep", val:0.05}, {v1:"Screen time", v2:"Screen time", val:1.0}, {v1:"Screen time", v2:"Social energy", val:-0.18}, {v1:"Screen time", v2:"Productivity", val:0.01}, {v1:"Screen time", v2:"Learning", val:-0.04},
+              {v1:"Social energy", v2:"Mood", val:0.31}, {v1:"Social energy", v2:"Stress", val:-0.39}, {v1:"Social energy", v2:"Sleep", val:-0.01}, {v1:"Social energy", v2:"Screen time", val:-0.18}, {v1:"Social energy", v2:"Social energy", val:1.0}, {v1:"Social energy", v2:"Productivity", val:-0.10}, {v1:"Social energy", v2:"Learning", val:-0.58},
+              {v1:"Productivity", v2:"Mood", val:0.03}, {v1:"Productivity", v2:"Stress", val:0.33}, {v1:"Productivity", v2:"Sleep", val:-0.10}, {v1:"Productivity", v2:"Screen time", val:0.01}, {v1:"Productivity", v2:"Social energy", val:-0.10}, {v1:"Productivity", v2:"Productivity", val:1.0}, {v1:"Productivity", v2:"Learning", val:0.47},
+              {v1:"Learning", v2:"Mood", val:0.09}, {v1:"Learning", v2:"Stress", val:0.59}, {v1:"Learning", v2:"Sleep", val:0.08}, {v1:"Learning", v2:"Screen time", val:-0.04}, {v1:"Learning", v2:"Social energy", val:-0.58}, {v1:"Learning", v2:"Productivity", val:0.47}, {v1:"Learning", v2:"Learning", val:1.0}
+            ];
+
+            const m = {top: 20, right: 15, bottom: 40, left: 85},
+                  w = document.getElementById('c-corr').clientWidth - m.left - m.right, h = 320 - m.top - m.bottom;
+            const svg = d3.select("#c-corr").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+
+            const x = d3.scaleBand().domain(labels).range([0, w]).padding(0.02);
+            const y = d3.scaleBand().domain(labels).range([0, h]).padding(0.02);
+            
+            // Ultra high-contrast palette: Orange (Negative) to White (Zero) to Deep Steel Blue (Positive)
+            const colorScale = d3.scaleDiverging(d3.interpolatePuOr).domain([-1, 0, 1]);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x))
+               .selectAll("text").style("text-anchor", "end").attr("transform", "rotate(-20)");
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y));
+
+            const cells = svg.selectAll(".cell-group").data(matrix).enter().append("g");
+
+            cells.append("rect")
+                .attr("x", d => x(d.v1)).attr("y", d => y(d.v2)).attr("width", x.bandwidth()).attr("height", y.bandwidth())
+                .attr("fill", d => colorScale(d.val)).style("cursor", "pointer")
+                .on("mouseover", (e, d) => showTT(e, `Variables: <b>${d.v1} & ${d.v2}</b><br>Correlation: <b>${d.val >= 0 ? '+' : ''}${d.val.toFixed(2)}</b>`))
+                .on("mouseout", hideTT);
+
+            cells.append("text").attr("class", "matrix-text")
+                .attr("x", d => x(d.v1) + x.bandwidth() / 2).attr("y", d => y(d.v2) + y.bandwidth() / 2)
+                .text(d => (d.val >= 0 ? "+" : "") + d.val.toFixed(2))
+                .style("fill", d => Math.abs(d.val) > 0.45 ? "#ffffff" : "#0f172a");
+        })();
+    </script>
+</body>
+</html>
