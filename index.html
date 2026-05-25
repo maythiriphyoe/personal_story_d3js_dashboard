@@ -444,4 +444,146 @@
                 });
             })();
 
-            //
+            // 2. Mood vs Social Scatter Plot Tracking
+            (() => {
+                const m = {top: 15, right: 15, bottom: 30, left: 24},
+                      w = document.getElementById('c-social').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+                const svg = d3.select("#c-social").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+                const x = d3.scaleLinear().domain([3, 8]).range([0, w]);
+                const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+                svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(5));
+                svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+                svg.selectAll("circle").data(filteredData).enter().append("circle").attr("class", "interactive-dot")
+                    .attr("cx", d => x(d.soc)).attr("cy", d => y(d.m)).attr("r", 5.5).attr("fill", "#7c3aed").attr("opacity", 0.8)
+                    .on("mouseover", (e, d) => showTT(e, `Social energy reserve: <b>${d.soc}</b><br>Mood score: <b>${d.m}</b>`)).on("mouseout", hideTT);
+            })();
+
+            // 3. Sleep vs Mood Scatter Plot
+            (() => {
+                const m = {top: 15, right: 15, bottom: 30, left: 24},
+                      w = document.getElementById('c-sleep').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+                const svg = d3.select("#c-sleep").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+                const x = d3.scaleLinear().domain([3, 9]).range([0, w]);
+                const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+                svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(6));
+                svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+                svg.selectAll("circle").data(filteredData).enter().append("circle").attr("class", "interactive-dot")
+                    .attr("cx", d => x(d.sl)).attr("cy", d => y(d.m)).attr("r", 5).attr("fill", "#0d9488")
+                    .on("mouseover", (e, d) => showTT(e, `Sleep hours: <b>${d.sl}</b><br>Mood score: <b>${d.m}</b>`)).on("mouseout", hideTT);
+            })();
+
+            // 4. Highlight Category Horizontal Bar Chart Configuration
+            (() => {
+                const rolled = d3.rollup(filteredData, v => d3.mean(v, d => d.m), d => d["Daily Highlight Category"]);
+                const bData = Array.from(rolled, ([k, v]) => ({ k, v })).sort((a,b) => b.v - a.v);
+                
+                const m = {top: 10, right: 20, bottom: 20, left: 90},
+                      w = document.getElementById('c-high').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+                const svg = d3.select("#c-high").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+                const x = d3.scaleLinear().domain([0, 10]).range([0, w]);
+                const y = d3.scaleBand().domain(bData.map(d => d.k)).range([0, h]).padding(0.25);
+
+                svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(5));
+                svg.append("g").attr("class", "axis").call(d3.axisLeft(y));
+
+                svg.selectAll("rect").data(bData).enter().append("rect").attr("class", "interactive-bar")
+                    .attr("x", 0).attr("y", d => y(d.k)).attr("width", d => x(d.v)).attr("height", y.bandwidth()).attr("fill", "#6d28d9")
+                    .on("mouseover", (e, d) => showTT(e, `Category: <b>${d.k}</b><br>Avg mood baseline: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
+            })();
+
+            // 5. Weekday vs Weekend Stress Split Bar Chart Component
+            (() => {
+                const rolled = d3.rollup(filteredData, v => d3.mean(v, d => d.s), d => d["Day Type"]);
+                const bData = Array.from(rolled, ([k, v]) => ({ k, v }));
+                
+                const m = {top: 15, right: 15, bottom: 30, left: 24},
+                      w = document.getElementById('c-week').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+                const svg = d3.select("#c-week").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+                const x = d3.scaleBand().domain(["Weekday", "Weekend"]).range([0, w]).padding(0.45);
+                const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+                svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x));
+                svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+                svg.selectAll("rect").data(bData).enter().append("rect").attr("class", "interactive-bar")
+                    .attr("x", d => x(d.k)).attr("y", d => y(d.v)).attr("width", x.bandwidth()).attr("height", d => h - y(d.v))
+                    .attr("fill", d => d.k === "Weekday" ? "#dc2626" : "#2563eb")
+                    .on("mouseover", (e, d) => showTT(e, `Segment: <b>${d.k}</b><br>Avg stress level: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
+            })();
+
+            // 6. Journaling Impact Split Bar Chart Component
+            (() => {
+                const rolled = d3.rollup(filteredData, v => d3.mean(v, d => d.m), d => d["Journaling"]);
+                const bData = Array.from(rolled, ([k, v]) => ({ k, v }));
+                
+                const m = {top: 15, right: 15, bottom: 30, left: 24},
+                      w = document.getElementById('c-habit').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
+                const svg = d3.select("#c-habit").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+                const x = d3.scaleBand().domain(["Yes", "No"]).range([0, w]).padding(0.45);
+                const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
+
+                svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x));
+                svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+                svg.selectAll("rect").data(bData).enter().append("rect").attr("class", "interactive-bar")
+                    .attr("x", d => x(d.k)).attr("y", d => y(d.v)).attr("width", x.bandwidth()).attr("height", d => h - y(d.v))
+                    .attr("fill", d => d.k === "Yes" ? "#16a34a" : "#4b5563")
+                    .on("mouseover", (e, d) => showTT(e, `Journaled: <b>${d.k}</b><br>Avg mood baseline: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
+            })();
+        }
+
+        // 7. Static Diverging Color Matrix Structural Mapping (High Contrast Purple/Orange)
+        (() => {
+            const labels = ["Mood", "Stress", "Sleep", "Screen time", "Social energy", "Productivity", "Learning"];
+            const matrix = [
+              {v1:"Mood", v2:"Mood", val:1.0}, {v1:"Mood", v2:"Stress", val:-0.40}, {v1:"Mood", v2:"Sleep", val:0.35}, {v1:"Mood", v2:"Screen time", val:0.02}, {v1:"Mood", v2:"Social energy", val:0.31}, {v1:"Mood", v2:"Productivity", val:0.03}, {v1:"Mood", v2:"Learning", val:0.09},
+              {v1:"Stress", v2:"Mood", val:-0.40}, {v1:"Stress", v2:"Stress", val:1.0}, {v1:"Stress", v2:"Sleep", val:-0.02}, {v1:"Stress", v2:"Screen time", val:-0.07}, {v1:"Stress", v2:"Social energy", val:-0.39}, {v1:"Stress", v2:"Productivity", val:0.33}, {v1:"Stress", v2:"Learning", val:0.59},
+              {v1:"Sleep", v2:"Mood", val:0.35}, {v1:"Sleep", v2:"Stress", val:-0.02}, {v1:"Sleep", v2:"Sleep", val:1.0}, {v1:"Sleep", v2:"Screen time", val:0.05}, {v1:"Sleep", v2:"Social energy", val:-0.01}, {v1:"Sleep", v2:"Productivity", val:-0.10}, {v1:"Sleep", v2:"Learning", val:0.08},
+              {v1:"Screen time", v2:"Mood", val:0.02}, {v1:"Screen time", v2:"Stress", val:-0.07}, {v1:"Screen time", v2:"Sleep", val:0.05}, {v1:"Screen time", v2:"Screen time", val:1.0}, {v1:"Screen time", v2:"Social energy", val:-0.18}, {v1:"Screen time", v2:"Productivity", val:0.01}, {v1:"Screen time", v2:"Learning", val:-0.04},
+              {v1:"Social energy", v2:"Mood", val:0.31}, {v1:"Social energy", v2:"Stress", val:-0.39}, {v1:"Social energy", v2:"Sleep", val:-0.01}, {v1:"Social energy", v2:"Screen time", val:-0.18}, {v1:"Social energy", v2:"Social energy", val:1.0}, {v1:"Social energy", v2:"Productivity", val:-0.10}, {v1:"Social energy", v2:"Learning", val:-0.58},
+              {v1:"Productivity", v2:"Mood", val:0.03}, {v1:"Productivity", v2:"Stress", val:0.33}, {v1:"Productivity", v2:"Sleep", val:-0.10}, {v1:"Productivity", v2:"Screen time", val:0.01}, {v1:"Productivity", v2:"Social energy", val:-0.10}, {v1:"Productivity", v2:"Productivity", val:1.0}, {v1:"Productivity", v2:"Learning", val:0.47},
+              {v1:"Learning", v2:"Mood", val:0.09}, {v1:"Learning", v2:"Stress", val:0.59}, {v1:"Learning", v2:"Sleep", val:0.08}, {v1:"Learning", v2:"Screen time", val:-0.04}, {v1:"Learning", v2:"Social energy", val:-0.58}, {v1:"Learning", v2:"Productivity", val:0.47}, {v1:"Learning", v2:"Learning", val:1.0}
+            ];
+
+            const m = {top: 20, right: 15, bottom: 40, left: 85},
+                  w = document.getElementById('c-corr').clientWidth - m.left - m.right, h = 320 - m.top - m.bottom;
+            const svg = d3.select("#c-corr").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
+
+            const x = d3.scaleBand().domain(labels).range([0, w]).padding(0.02);
+            const y = d3.scaleBand().domain(labels).range([0, h]).padding(0.02);
+            
+            // High contrast diverging color logic selection
+            const colorScale = d3.scaleDiverging(d3.interpolatePuOr).domain([-1, 0, 1]);
+
+            svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x))
+               .selectAll("text").style("text-anchor", "end").attr("transform", "rotate(-22)");
+            svg.append("g").attr("class", "axis").call(d3.axisLeft(y));
+
+            const cells = svg.selectAll(".cell-group").data(matrix).enter().append("g");
+
+            cells.append("rect")
+                .attr("x", d => x(d.v1)).attr("y", d => y(d.v2)).attr("width", x.bandwidth()).attr("height", y.bandwidth())
+                .attr("fill", d => colorScale(d.val)).style("cursor", "pointer")
+                .on("mouseover", (e, d) => showTT(e, `Correlation match: <b>${d.v1} & ${d.v2}</b><br>Value: <b>${d.val >= 0 ? '+' : ''}${d.val.toFixed(2)}</b>`))
+                .on("mouseout", hideTT);
+
+            cells.append("text").attr("class", "matrix-text")
+                .attr("x", d => x(d.v1) + x.bandwidth() / 2).attr("y", d => y(d.v2) + y.bandwidth() / 2)
+                .text(d => (d.val >= 0 ? "+" : "") + d.val.toFixed(2))
+                .style("fill", d => Math.abs(d.val) > 0.45 ? "#ffffff" : "#0f172a");
+        })();
+
+        // Event Listeners for Dynamic Control Systems
+        document.getElementById("filter-day-type").addEventListener("change", updateDashboardCharts);
+        document.getElementById("filter-journal").addEventListener("change", updateDashboardCharts);
+
+        // Core invocation on initialization
+        updateDashboardCharts();
+        window.addEventListener("resize", updateDashboardCharts);
+    </script>
+</body>
+</html>
