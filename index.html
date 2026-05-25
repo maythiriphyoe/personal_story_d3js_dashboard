@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Story Dashboard</title>
+    <title>Behavioral Log & Well-Being Dashboard</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
@@ -209,14 +209,14 @@
 
     <div class="container">
         <header>
-            <h1>Maeve's Personal Well-being Dashboard</h1>
+            <h1>Personal well-being & performance engine</h1>
         </header>
 
         <div class="panel" style="border-left: 4px solid #2563eb;">
             <h2>📖 About this project</h2>
             <div class="grid-text">
                 <div class="text-block" style="grid-column: span 2;">
-                    <p>This dashboard was created for the Data Communications class in Spring 2026. It uses 20 days of personal habit and well-being data collected through daily tracking and journaling. The dashboard includes data such as sleep hours, screen time, learning hours, productivity, mood, stress, social energy, and journaling habits. The project was built using D3.js.</p>
+                    <p>This dashboard was created for the Data Communications class in Spring 2026. It uses 20 days of personal habit and well-being data collected through daily tracking. The dashboard includes data such as sleep hours, screen time, learning hours, productivity, mood, stress, social energy, and journaling habits. The project was built using D3.js.</p>
                 </div>
             </div>
         </div>
@@ -234,7 +234,7 @@
                 </div>
                 <div class="text-block">
                     <h3>Journaling pattern</h3>
-                    <p>Journaling appeared more often on stressful days. This indicates that journaling was mostly used after stress happened instead of being part of a consistent daily routine.</p>
+                    <p>Journaling appeared more often on stressful days. This suggests journaling was mostly used after stress happened instead of being part of a consistent daily routine.</p>
                 </div>
             </div>
         </div>
@@ -338,7 +338,13 @@
                 </div>
                 <div class="text-block">
                     <h3>📊 Visualization choices</h3>
-                    <p>Simple and color-blind friendly colors were used to improve readability. Different chart types were chosen to make trends and comparisons easier to understand.</p>
+                    <ul>
+                        <li><strong>Mood vs. Stress Timeline (Line Chart):</strong> to clearly show how mood and stress changed over time across the 20 days.</li>
+                        <li><strong>Mood vs. Social Energy & Sleep (Scatter Plots):</strong> to show relationships between mood, sleep, and social energy through individual daily data points.</li>
+                        <li><strong>Average Mood by Daily Highlight (Horizontal Bar Chart):</strong> to compare mood scores across activity categories while keeping labels easy to read.</li>
+                        <li><strong>Stress Profiles & Journaling Impact (Bar Charts):</strong> for simple comparisons between groups such as weekdays vs. weekends and journaling vs. non-journaling days.</li>
+                        <li><strong>Variable Correlation Matrix (Heatmap):</strong> to summarize relationships between all tracked variables.</li>
+                    </ul>
                 </div>
                 <div class="text-block">
                     <h3>🤖 AI use & Additional context</h3>
@@ -388,7 +394,7 @@
             d.soc = +d["Social Energy"];
         });
 
-        // Tooltip global configuration reference
+        // Tooltip configuration reference
         const tt = d3.select("#tt");
         const showTT = (e, txt) => tt.style("opacity", 1).html(txt).style("left", (e.pageX + 12) + "px").style("top", (e.pageY - 15) + "px");
         const hideTT = () => tt.style("opacity", 0);
@@ -556,7 +562,7 @@
             const x = d3.scaleBand().domain(labels).range([0, w]).padding(0.02);
             const y = d3.scaleBand().domain(labels).range([0, h]).padding(0.02);
             
-            // Core Diverging Color mapping logic selection (D3 PuOr palette reference)
+            // Diverging Color mapping logic selection (D3 PuOr palette reference)
             const colorScale = d3.scaleDiverging(d3.interpolatePuOr).domain([-1, 0, 1]);
 
             svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x))
