@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Behavioral Log & Well-Being Dashboard</title>
+    <title>Personal Story Dashboard</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
@@ -209,7 +209,7 @@
 
     <div class="container">
         <header>
-            <h1>Personal well-being & performance engine</h1>
+            <h1>Maeve's Personal Well-being Dashboard</h1>
         </header>
 
         <div class="panel" style="border-left: 4px solid #2563eb;">
@@ -267,8 +267,8 @@
         </div>
 
         <div class="grid-charts">
-            <div class="chart-card w-12">
-                <h3>Mood vs stress timeline tracking</h3>
+            <div class="chart-card w-12" style="min-height: 250px;">
+                <h3>Mood vs Stress Trend</h3>
                 <div class="legend">
                     <div class="legend-i"><div class="legend-b" style="background: #2563eb;"></div>Mood baseline</div>
                     <div class="legend-i"><div class="legend-b" style="background: #ea580c;"></div>Stress response</div>
@@ -277,32 +277,32 @@
             </div>
 
             <div class="chart-card w-6">
-                <h3>Mood score vs social energy reserve</h3>
+                <h3>Mood Score vs Social Energy</h3>
                 <div id="c-social"></div>
             </div>
 
             <div class="chart-card w-6">
-                <h3>Sleep duration influence on mood</h3>
+                <h3>Sleep Duration Influence on Mood</h3>
                 <div id="c-sleep"></div>
             </div>
 
             <div class="chart-card w-12">
-                <h3>Average mood score by daily highlight category</h3>
+                <h3>Average Mood Score by Daily Highlight Category</h3>
                 <div id="c-high"></div>
             </div>
 
             <div class="chart-card w-6">
-                <h3>Stress profiles: weekdays vs weekends</h3>
+                <h3>Stress Score During Weekdays vs Weekends</h3>
                 <div id="c-week"></div>
             </div>
 
             <div class="chart-card w-6">
-                <h3>Wellness baseline: journaling impact</h3>
+                <h3>Journaling Impact on Wellness</h3>
                 <div id="c-habit"></div>
             </div>
 
             <div class="chart-card w-12">
-                <h3>Variable correlation matrix heatmap</h3>
+                <h3>Variables Correlation Matrix</h3>
                 <div id="c-corr"></div>
             </div>
         </div>
@@ -394,7 +394,25 @@
             d.soc = +d["Social Energy"];
         });
 
-        // Tooltip configuration reference
+        // Helper function to calculate a simple linear regression line (y = mx + b)
+        function getRegressionLine(data, xKey, yKey) {
+            const n = data.length;
+            if (n === 0) return [];
+            const sumX = d3.sum(data, d => d[xKey]);
+            const sumY = d3.sum(data, d => d[yKey]);
+            const sumXY = d3.sum(data, d => d[xKey] * d[yKey]);
+            const sumXX = d3.sum(data, d => d[xKey] * d[xKey]);
+            const denom = (n * sumXX - sumX * sumX);
+            if (denom === 0) return [];
+            const slope = (n * sumXY - sumX * sumY) / denom;
+            const intercept = (sumY - slope * sumX) / n;
+            return [
+                { x: 0, y: intercept },
+                { x: 10, y: slope * 10 + intercept }
+            ];
+        }
+
+        // Tooltip global configuration reference
         const tt = d3.select("#tt");
         const showTT = (e, txt) => tt.style("opacity", 1).html(txt).style("left", (e.pageX + 12) + "px").style("top", (e.pageY - 15) + "px");
         const hideTT = () => tt.style("opacity", 0);
@@ -416,7 +434,7 @@
             d3.select("#k-sl").text(filteredData.length ? d3.mean(filteredData, d => d.sl).toFixed(1) : "N/A");
             d3.select("#k-sc").text(filteredData.length ? d3.mean(filteredData, d => d.scr).toFixed(1) : "N/A");
 
-            // Clear legacy SVG visual fields securely prior to a re-render phase
+            // Clear legacy SVG visual fields prior to a re-render phase
             d3.select("#c-line").selectAll("*").remove();
             d3.select("#c-social").selectAll("*").remove();
             d3.select("#c-sleep").selectAll("*").remove();
@@ -426,15 +444,28 @@
 
             if (!filteredData.length) return;
 
-            // 1. Line Chart Timeline Component
+            // 1. Line Chart Timeline Component (Showing dates for every data point formatted as "May 1")
             (() => {
-                const m = {top: 15, right: 20, bottom: 25, left: 24},
-                      w = document.getElementById('c-line').clientWidth - m.left - m.right, h = 200 - m.top - m.bottom;
+                const m = {top: 15, right: 20, bottom: 50, left: 24},
+                      w = document.getElementById('c-line').clientWidth - m.left - m.right, h = 230 - m.top - m.bottom;
                 const svg = d3.select("#c-line").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
                 const x = d3.scaleTime().domain(d3.extent(filteredData, d => d.pDate)).range([0, w]);
                 const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
 
-                svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%m/%d")));
+                const xAxis = d3.axisBottom(x)
+                                .tickValues(filteredData.map(d => d.pDate))
+                                .tickFormat(d => d3.timeFormat("%b %e")(d).replace(/\s+/g, ' '));
+
+                svg.append("g")
+                   .attr("transform", `translate(0,${h})`)
+                   .attr("class", "axis")
+                   .call(xAxis)
+                   .selectAll("text")
+                   .style("text-anchor", "end")
+                   .attr("transform", "rotate(-45)")
+                   .attr("dx", "-.5em")
+                   .attr("dy", ".5em");
+
                 svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
 
                 if(filteredData.length > 1) {
@@ -444,38 +475,64 @@
 
                 filteredData.forEach(d => {
                     svg.append("circle").attr("cx", x(d.pDate)).attr("cy", y(d.m)).attr("r", 4.5).attr("fill", "#2563eb").attr("class", "interactive-dot")
-                       .on("mouseover", e => showTT(e, `Date: ${d.Date}<br>Mood baseline: <b>${d.m}</b>`)).on("mouseout", hideTT);
+                       .on("mouseover", e => showTT(e, `Date: ${d.Date}<br>Mood: <b>${d.m}</b>`)).on("mouseout", hideTT);
                     svg.append("circle").attr("cx", x(d.pDate)).attr("cy", y(d.s)).attr("r", 4.5).attr("fill", "#ea580c").attr("class", "interactive-dot")
-                       .on("mouseover", e => showTT(e, `Date: ${d.Date}<br>Stress level: <b>${d.s}</b>`)).on("mouseout", hideTT);
+                       .on("mouseover", e => showTT(e, `Date: ${d.Date}<br>Stress: <b>${d.s}</b>`)).on("mouseout", hideTT);
                 });
             })();
 
-            // 2. Mood vs Social Scatter Plot Axis Configuration
+            // 2. Mood Score vs Social Energy Scatter Plot (Base 0, Range 10, Trendline relation added)
             (() => {
                 const m = {top: 15, right: 15, bottom: 30, left: 24},
                       w = document.getElementById('c-social').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
                 const svg = d3.select("#c-social").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
-                const x = d3.scaleLinear().domain([3, 8]).range([0, w]);
+                const x = d3.scaleLinear().domain([0, 10]).range([0, w]);
                 const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
 
                 svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(5));
                 svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
 
+                // Add Relation Line
+                const regressionData = getRegressionLine(filteredData, 'soc', 'm');
+                if (regressionData.length === 2) {
+                    const lineGen = d3.line().x(d => x(d.x)).y(d => y(d.y));
+                    svg.append("path")
+                       .datum(regressionData)
+                       .attr("fill", "none")
+                       .attr("stroke", "#7c3aed")
+                       .attr("stroke-width", 2)
+                       .attr("stroke-dasharray", "4,4")
+                       .attr("d", lineGen);
+                }
+
                 svg.selectAll("circle").data(filteredData).enter().append("circle").attr("class", "interactive-dot")
                     .attr("cx", d => x(d.soc)).attr("cy", d => y(d.m)).attr("r", 5.5).attr("fill", "#7c3aed").attr("opacity", 0.8)
-                    .on("mouseover", (e, d) => showTT(e, `Social energy reserve: <b>${d.soc}</b><br>Mood score: <b>${d.m}</b>`)).on("mouseout", hideTT);
+                    .on("mouseover", (e, d) => showTT(e, `Social energy: <b>${d.soc}</b><br>Mood score: <b>${d.m}</b>`)).on("mouseout", hideTT);
             })();
 
-            // 3. Sleep vs Mood Scatter Plot Mapping
+            // 3. Sleep Duration Influence on Mood Scatter Plot (Base 0, Range 10, Trendline relation added)
             (() => {
                 const m = {top: 15, right: 15, bottom: 30, left: 24},
                       w = document.getElementById('c-sleep').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
                 const svg = d3.select("#c-sleep").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
-                const x = d3.scaleLinear().domain([3, 9]).range([0, w]);
+                const x = d3.scaleLinear().domain([0, 10]).range([0, w]);
                 const y = d3.scaleLinear().domain([0, 10]).range([h, 0]);
 
-                svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(6));
+                svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x).ticks(5));
                 svg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5));
+
+                // Add Relation Line
+                const regressionData = getRegressionLine(filteredData, 'sl', 'm');
+                if (regressionData.length === 2) {
+                    const lineGen = d3.line().x(d => x(d.x)).y(d => y(d.y));
+                    svg.append("path")
+                       .datum(regressionData)
+                       .attr("fill", "none")
+                       .attr("stroke", "#0d9488")
+                       .attr("stroke-width", 2)
+                       .attr("stroke-dasharray", "4,4")
+                       .attr("d", lineGen);
+                }
 
                 svg.selectAll("circle").data(filteredData).enter().append("circle").attr("class", "interactive-dot")
                     .attr("cx", d => x(d.sl)).attr("cy", d => y(d.m)).attr("r", 5).attr("fill", "#0d9488")
@@ -501,12 +558,12 @@
                     .on("mouseover", (e, d) => showTT(e, `Category: <b>${d.k}</b><br>Avg mood score: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
             })();
 
-            // 5. Weekday vs Weekend Stress Split Bar Chart Rendering
+            // 5. Weekday vs Weekend Stress Split Bar Chart Rendering (With top data labels added)
             (() => {
                 const rolled = d3.rollup(filteredData, v => d3.mean(v, d => d.s), d => d["Day Type"]);
                 const bData = Array.from(rolled, ([k, v]) => ({ k, v }));
                 
-                const m = {top: 15, right: 15, bottom: 30, left: 24},
+                const m = {top: 25, right: 15, bottom: 30, left: 24},
                       w = document.getElementById('c-week').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
                 const svg = d3.select("#c-week").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
                 const x = d3.scaleBand().domain(["Weekday", "Weekend"]).range([0, w]).padding(0.45);
@@ -519,14 +576,27 @@
                     .attr("x", d => x(d.k)).attr("y", d => y(d.v)).attr("width", x.bandwidth()).attr("height", d => h - y(d.v))
                     .attr("fill", d => d.k === "Weekday" ? "#dc2626" : "#2563eb")
                     .on("mouseover", (e, d) => showTT(e, `Segment: <b>${d.k}</b><br>Avg stress level: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
+
+                // Add data labels on top
+                svg.selectAll(".bar-label")
+                   .data(bData)
+                   .enter()
+                   .append("text")
+                   .attr("x", d => x(d.k) + x.bandwidth() / 2)
+                   .attr("y", d => y(d.v) - 6)
+                   .attr("text-anchor", "middle")
+                   .style("font-size", "11px")
+                   .style("font-weight", "600")
+                   .style("fill", "#475569")
+                   .text(d => d.v.toFixed(1));
             })();
 
-            // 6. Journaling Habit Split Bar Chart Component
+            // 6. Journaling Habit Split Bar Chart Component (With top data labels added)
             (() => {
                 const rolled = d3.rollup(filteredData, v => d3.mean(v, d => d.m), d => d["Journaling"]);
                 const bData = Array.from(rolled, ([k, v]) => ({ k, v }));
                 
-                const m = {top: 15, right: 15, bottom: 30, left: 24},
+                const m = {top: 25, right: 15, bottom: 30, left: 24},
                       w = document.getElementById('c-habit').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
                 const svg = d3.select("#c-habit").append("svg").attr("width", w+m.left+m.right).attr("height", h+m.top+m.bottom).append("g").attr("transform", `translate(${m.left},${m.top})`);
                 const x = d3.scaleBand().domain(["Yes", "No"]).range([0, w]).padding(0.45);
@@ -539,6 +609,19 @@
                     .attr("x", d => x(d.k)).attr("y", d => y(d.v)).attr("width", x.bandwidth()).attr("height", d => h - y(d.v))
                     .attr("fill", d => d.k === "Yes" ? "#16a34a" : "#4b5563")
                     .on("mouseover", (e, d) => showTT(e, `Journaled: <b>${d.k}</b><br>Avg mood score: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
+
+                // Add data labels on top
+                svg.selectAll(".bar-label")
+                   .data(bData)
+                   .enter()
+                   .append("text")
+                   .attr("x", d => x(d.k) + x.bandwidth() / 2)
+                   .attr("y", d => y(d.v) - 6)
+                   .attr("text-anchor", "middle")
+                   .style("font-size", "11px")
+                   .style("font-weight", "600")
+                   .style("fill", "#475569")
+                   .text(d => d.v.toFixed(1));
             })();
         }
 
