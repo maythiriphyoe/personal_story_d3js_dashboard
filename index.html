@@ -213,10 +213,10 @@
         </header>
 
         <div class="panel" style="border-left: 4px solid #2563eb;">
-            <h2>📖 Story behind</h2>
+            <h2>📖 About this project</h2>
             <div class="grid-text">
                 <div class="text-block" style="grid-column: span 2;">
-                    <p>This project is meant to build an interactive personal story dashboard for the **Data Communications Class for Spring 2026 semester**. This project is built by **D3.js** and uses the personal behavior data collected for 20 days. The variables include sleep hours, screen time, learning duration, productivity scores, social energy reserves, stress levels, daily highlight categories, and proactive mental health habits (such as journaling).</p>
+                    <p>This dashboard was created for the Data Communications class in Spring 2026. It uses 20 days of personal habit and well-being data collected through daily tracking. The dashboard includes data such as sleep hours, screen time, learning hours, productivity, mood, stress, social energy, and journaling habits. The project was built using D3.js.</p>
                 </div>
             </div>
         </div>
@@ -225,16 +225,16 @@
             <h2>💡 Key insights</h2>
             <div class="grid-text">
                 <div class="text-block">
-                    <h3>Cognitive cost of sprints</h3>
-                    <p>Intensive learning periods act as direct catalysts for emotional distress, exhibiting a high positive correlation (r = 0.59) with stress spikes. While stress manages to temporarily push up productivity scores (r = 0.33), it compromises emotional coping mechanisms, leading directly to compressed mood states (r = -0.40).</p>
+                    <h3>Stress during study periods</h3>
+                    <p>Days with longer learning hours often had higher stress levels. Productivity sometimes increased during stressful days, but mood usually became lower afterward.</p>
                 </div>
                 <div class="text-block">
-                    <h3>Social battery drain</h3>
-                    <p>Extended learning intervals systematically exhaust internal social energy structures (r = -0.58). This highlights a structural trade-off where heavy intellectual progress directly shrinks interpersonal and communication capacities for the day.</p>
+                    <h3>Social energy drops</h3>
+                    <p>Heavy study days were often linked to lower social energy. Spending more time learning sometimes left less energy for social interaction and communication.</p>
                 </div>
                 <div class="text-block">
-                    <h3>The reactive routine flaw</h3>
-                    <p>Isolating the journaling metric exposes a noticeable structural issue: days featuring active journaling correlate with higher stress baselines (6.0 vs 5.0). This demonstrates that mindfulness habits are currently deployed as an <em>emergency damage control mechanism</em> after stress spikes occur, rather than acting as daily preventive maintenance.</p>
+                    <h3>Journaling pattern</h3>
+                    <p>Journaling appeared more often on stressful days. This suggests journaling was mostly used after stress happened instead of being part of a consistent daily routine.</p>
                 </div>
             </div>
         </div>
@@ -308,42 +308,42 @@
         </div>
 
         <div class="panel" style="border-left: 4px solid #16a34a;">
-            <h2>🎯 Data-backed decisions</h2>
+            <h2>🎯 What I learned</h2>
             <div class="grid-text">
                 <div class="text-block" style="grid-column: span 2;">
-                    <p>Based on the data gathered over this 20-day tracking period, several clear behavioral modifications should be implemented to break unhealthy feedback loops:</p>
+                    <p>After tracking my habits for 20 days, I noticed a few patterns that may help improve my routine and well-being:</p>
                     <ul style="margin-top: 10px;">
-                        <li><strong>Enforcing a learning threshold:</strong> Since learning hours have a sharp negative correlation with social energy (r = -0.58) and drive up stress levels (r = 0.59), study sprints must be capped. When social energy registers below 5, learning allocations should immediately scale down to protect the emotional baseline from crashing.</li>
-                        <li><strong>Transitioning from reactive to proactive habits:</strong> The data highlights that journaling currently tracks alongside higher stress levels (avg 6.0 vs 5.0). To fix this anomaly, journaling should be relocated to a fixed morning routine, transforming it into an objective, preventive shield rather than an emergency coping tool used only after burnout hits.</li>
-                        <li><strong>Strategic restructuring of downtime:</strong> Passively treating downtime as an emergency response to fatigue correlates with lower mood drops (`Relaxation` averages an emotional low of 2.0). Conversely, creative anchors yield peak scores (`Hobby` highlights average 8.0). Active, creative recovery should be intentionally scheduled into mid-week blocks rather than waiting for burnout to force passive recovery.</li>
+                        <li><strong>Balance study time:</strong> Long study hours often increased stress and reduced social energy. Taking breaks and avoiding long study sprints may help prevent burnout.</li>
+                        <li><strong>Journal regularly:</strong> Journaling mostly happened on stressful days. Turning it into a regular habit may help manage stress earlier.</li>
+                        <li><strong>Make time for hobbies:</strong> Creative and enjoyable activities were linked to better mood scores. Scheduling hobby time during busy weeks may help improve emotional well-being.</li>
                     </ul>
                 </div>
             </div>
         </div>
 
         <div class="panel" style="border-top: 4px solid #475569;">
-            <h2>⚖️ Ethics & responsibility</h2>
+            <h2>⚖️ Ethics & limitations</h2>
             <div class="grid-text">
                 <div class="text-block">
-                    <h3>🔒 Privacy statement</h3>
-                    <p><strong>Included data:</strong> This dashboard logs high-level self-reported psychometric parameters and basic time tracking. <br><strong>Anonymization method:</strong> Raw qualitative text descriptions from personal journals were permanently scrubbed. Emotional outputs and contextual milestones were abstracted into uniform operational definitions and broad categories (e.g., <code>Hobby</code>, <code>Entertainment</code>, <code>Achievement</code>) to eliminate personal details while preserving complete analytical utility.</p>
+                    <h3>🔒 Privacy</h3>
+                    <p>This dashboard only uses general self-tracked data such as mood, stress, sleep, and productivity. Personal journal details were removed and grouped into broad categories like Hobby, Entertainment, and Achievement.</p>
                 </div>
                 <div class="text-block">
-                    <h3>⚠️ Bias & limitations</h3>
+                    <h3>⚠️ Limitations</h3>
                     <ul>
-                        <li><strong>Memory bias:</strong> Compiling retroactive logs carries an inherent risk of historical recency filtering, where past days may be inadvertently scored based on recent emotional states.</li>
-                        <li><strong>Small dataset:</strong> A 20-day window represents a brief snapshot. It cannot accurately account for long-term seasonal trends, academic cycles, or broader shifts in routine.</li>
-                        <li><strong>Subjective scoring:</strong> Metrics like mood and stress are logged via self-reported rankings (1–10) without external biometric calibration, introducing variance based on daily mindset.</li>
+                        <li>The dataset only covers 20 days, so it may not fully represent long-term patterns.</li>
+                        <li>Mood and stress scores were self-reported and may change depending on emotions or memory.</li>
+                        <li>Some entries were logged later, so a few details may not be perfectly accurate.</li>
                     </ul>
                 </div>
                 <div class="text-block">
-                    <h3>📊 Visualization justification</h3>
-                    <p><strong>Color-blind safe matrix:</strong> Traditional red-green color styling was avoided in favor of a purple/orange diverging scheme, clearly distinguishing conflicting correlations. Centered metrics eliminate visual guesswork. <br><strong>Decoupled scatter tracking:</strong> The mood vs. social energy chart explicitly drops screen time noise to focus entirely on social battery depletion thresholds. <br><strong>Isolated toggles:</strong> The wellness profile isolates journaling as a binary field to prevent confounding variables from masking trend interpretations.</p>
+                    <h3>📊 Visualization choices</h3>
+                    <p>Simple and color-blind friendly colors were used to improve readability. Different chart types were chosen to make trends and comparisons easier to understand.</p>
                 </div>
                 <div class="text-block">
-                    <h3>🎯 Responsible decision & AI use</h3>
-                    <p><strong>Decision limitations:</strong> These planned behavioral adjustments assume that observed correlations represent direct, isolated causations. They fail to track omitted variables like changes in physical health, diet, or workplace adjustments that independently affect mood.</p>
-                    <p style="margin-top: 8px;"><strong>Use of AI:</strong> **Gemini AI** was utilized in this project to assist with code scaffolding for the D3.js data binds, debug programmatic canvas logic, compute Pearson correlation tables for matrix verification, and polish formatting styles for academic presentation.</p>
+                    <h3>🤖 AI use & Additional context</h3>
+                    <p>Gemini AI was used to help with D3.js coding, debugging, correlation calculations, and improving the dashboard layout and styling.</p>
+                    <p style="margin-top: 8px;">The insights in this dashboard are based only on the collected data and may not include other factors such as physical health, diet, or outside events.</p>
                 </div>
             </div>
         </div>
@@ -388,7 +388,7 @@
             d.soc = +d["Social Energy"];
         });
 
-        // Tooltip global reference
+        // Tooltip global configuration reference
         const tt = d3.select("#tt");
         const showTT = (e, txt) => tt.style("opacity", 1).html(txt).style("left", (e.pageX + 12) + "px").style("top", (e.pageY - 15) + "px");
         const hideTT = () => tt.style("opacity", 0);
@@ -404,13 +404,13 @@
                 return matchDay && matchJournal;
             });
 
-            // Summary Statistics KPI elements updating dynamically
+            // Summary Statistics calculations updating dynamically
             d3.select("#k-m").text(filteredData.length ? d3.mean(filteredData, d => d.m).toFixed(1) : "N/A");
             d3.select("#k-s").text(filteredData.length ? d3.mean(filteredData, d => d.s).toFixed(1) : "N/A");
             d3.select("#k-sl").text(filteredData.length ? d3.mean(filteredData, d => d.sl).toFixed(1) : "N/A");
             d3.select("#k-sc").text(filteredData.length ? d3.mean(filteredData, d => d.scr).toFixed(1) : "N/A");
 
-            // Clear legacy visualizations safely prior to redraw operations
+            // Clear legacy SVG visual fields securely prior to a re-render phase
             d3.select("#c-line").selectAll("*").remove();
             d3.select("#c-social").selectAll("*").remove();
             d3.select("#c-sleep").selectAll("*").remove();
@@ -420,7 +420,7 @@
 
             if (!filteredData.length) return;
 
-            // 1. Line Chart Timeline Tracking
+            // 1. Line Chart Timeline Component
             (() => {
                 const m = {top: 15, right: 20, bottom: 25, left: 24},
                       w = document.getElementById('c-line').clientWidth - m.left - m.right, h = 200 - m.top - m.bottom;
@@ -444,7 +444,7 @@
                 });
             })();
 
-            // 2. Mood vs Social Scatter Plot Tracking
+            // 2. Mood vs Social Scatter Plot Axis Configuration
             (() => {
                 const m = {top: 15, right: 15, bottom: 30, left: 24},
                       w = document.getElementById('c-social').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
@@ -460,7 +460,7 @@
                     .on("mouseover", (e, d) => showTT(e, `Social energy reserve: <b>${d.soc}</b><br>Mood score: <b>${d.m}</b>`)).on("mouseout", hideTT);
             })();
 
-            // 3. Sleep vs Mood Scatter Plot
+            // 3. Sleep vs Mood Scatter Plot Mapping
             (() => {
                 const m = {top: 15, right: 15, bottom: 30, left: 24},
                       w = document.getElementById('c-sleep').clientWidth - m.left - m.right, h = 180 - m.top - m.bottom;
@@ -476,7 +476,7 @@
                     .on("mouseover", (e, d) => showTT(e, `Sleep hours: <b>${d.sl}</b><br>Mood score: <b>${d.m}</b>`)).on("mouseout", hideTT);
             })();
 
-            // 4. Highlight Category Horizontal Bar Chart Configuration
+            // 4. Highlight Category Horizontal Bar Chart Construction
             (() => {
                 const rolled = d3.rollup(filteredData, v => d3.mean(v, d => d.m), d => d["Daily Highlight Category"]);
                 const bData = Array.from(rolled, ([k, v]) => ({ k, v })).sort((a,b) => b.v - a.v);
@@ -492,10 +492,10 @@
 
                 svg.selectAll("rect").data(bData).enter().append("rect").attr("class", "interactive-bar")
                     .attr("x", 0).attr("y", d => y(d.k)).attr("width", d => x(d.v)).attr("height", y.bandwidth()).attr("fill", "#6d28d9")
-                    .on("mouseover", (e, d) => showTT(e, `Category: <b>${d.k}</b><br>Avg mood baseline: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
+                    .on("mouseover", (e, d) => showTT(e, `Category: <b>${d.k}</b><br>Avg mood score: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
             })();
 
-            // 5. Weekday vs Weekend Stress Split Bar Chart Component
+            // 5. Weekday vs Weekend Stress Split Bar Chart Rendering
             (() => {
                 const rolled = d3.rollup(filteredData, v => d3.mean(v, d => d.s), d => d["Day Type"]);
                 const bData = Array.from(rolled, ([k, v]) => ({ k, v }));
@@ -515,7 +515,7 @@
                     .on("mouseover", (e, d) => showTT(e, `Segment: <b>${d.k}</b><br>Avg stress level: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
             })();
 
-            // 6. Journaling Impact Split Bar Chart Component
+            // 6. Journaling Habit Split Bar Chart Component
             (() => {
                 const rolled = d3.rollup(filteredData, v => d3.mean(v, d => d.m), d => d["Journaling"]);
                 const bData = Array.from(rolled, ([k, v]) => ({ k, v }));
@@ -532,11 +532,11 @@
                 svg.selectAll("rect").data(bData).enter().append("rect").attr("class", "interactive-bar")
                     .attr("x", d => x(d.k)).attr("y", d => y(d.v)).attr("width", x.bandwidth()).attr("height", d => h - y(d.v))
                     .attr("fill", d => d.k === "Yes" ? "#16a34a" : "#4b5563")
-                    .on("mouseover", (e, d) => showTT(e, `Journaled: <b>${d.k}</b><br>Avg mood baseline: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
+                    .on("mouseover", (e, d) => showTT(e, `Journaled: <b>${d.k}</b><br>Avg mood score: <b>${d.v.toFixed(2)}</b>`)).on("mouseout", hideTT);
             })();
         }
 
-        // 7. Static Diverging Color Matrix Structural Mapping (High Contrast Purple/Orange)
+        // 7. Static Diverging Color Matrix Construction (High Contrast Purple/Orange Scheme)
         (() => {
             const labels = ["Mood", "Stress", "Sleep", "Screen time", "Social energy", "Productivity", "Learning"];
             const matrix = [
@@ -556,7 +556,7 @@
             const x = d3.scaleBand().domain(labels).range([0, w]).padding(0.02);
             const y = d3.scaleBand().domain(labels).range([0, h]).padding(0.02);
             
-            // High contrast diverging color logic selection
+            // Core Diverging Color mapping logic selection (D3 PuOr palette reference)
             const colorScale = d3.scaleDiverging(d3.interpolatePuOr).domain([-1, 0, 1]);
 
             svg.append("g").attr("transform", `translate(0,${h})`).attr("class", "axis").call(d3.axisBottom(x))
@@ -568,7 +568,7 @@
             cells.append("rect")
                 .attr("x", d => x(d.v1)).attr("y", d => y(d.v2)).attr("width", x.bandwidth()).attr("height", y.bandwidth())
                 .attr("fill", d => colorScale(d.val)).style("cursor", "pointer")
-                .on("mouseover", (e, d) => showTT(e, `Correlation match: <b>${d.v1} & ${d.v2}</b><br>Value: <b>${d.val >= 0 ? '+' : ''}${d.val.toFixed(2)}</b>`))
+                .on("mouseover", (e, d) => showTT(e, `Variables: <b>${d.v1} & ${d.v2}</b><br>Correlation value: <b>${d.val >= 0 ? '+' : ''}${d.val.toFixed(2)}</b>`))
                 .on("mouseout", hideTT);
 
             cells.append("text").attr("class", "matrix-text")
@@ -577,11 +577,11 @@
                 .style("fill", d => Math.abs(d.val) > 0.45 ? "#ffffff" : "#0f172a");
         })();
 
-        // Event Listeners for Dynamic Control Systems
+        // Event Listener elements connected to filtration toolbars
         document.getElementById("filter-day-type").addEventListener("change", updateDashboardCharts);
         document.getElementById("filter-journal").addEventListener("change", updateDashboardCharts);
 
-        // Core invocation on initialization
+        // Active baseline initialization invocation
         updateDashboardCharts();
         window.addEventListener("resize", updateDashboardCharts);
     </script>
